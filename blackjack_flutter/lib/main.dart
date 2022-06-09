@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors, avoid_print, prefer_interpolation_to_compose_strings
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -58,6 +60,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int houseCount = 0;
   int playerCount = 0;
 
+  StringBuffer sbGameState = StringBuffer("wager");
+
+  // Game states: wager, deal, player, house, pay
+
   int newCardRank = 0; // value from 1 to 10
 
   // One of these is needed for each text field, and the dispose() method
@@ -72,6 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  // SAMPLE METHOD/ROUTINE TO CHANGE VARIABLES - REQUIRES setState()
+  /*
   void _incrementCounter() {
     setState(() {
       // Any actions to change any variables go inside setState() - a bit
@@ -80,6 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
       //_counter++;
     });
   }
+  */
 
   /*
   ALL THE ACTION TAKES PLACE IN THE SCAFFOLD INSIDE THE WIDGET.
@@ -135,7 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Container(
               margin: const EdgeInsets.only(bottom: 5.0),
               child: const Text(
-                'Enter your wager below',
+                'Type your wager below and press Enter:',
               ),
             ),
             Container(
@@ -148,6 +157,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   setState(() {
                     print(">>> Value entered: $value");
                     wager = int.tryParse(value) ?? 0;
+                    sbGameState = StringBuffer("deal");
+
+                    playerCount = 0;
+                    houseCount = 0;
+
+                    dealCards();
                   });
                 },
                 style: TextStyle(fontSize: 30.0),
@@ -185,22 +200,113 @@ class _MyHomePageState extends State<MyHomePage> {
                       alignment: Alignment.center,
                       width: 150.0,
                       height: 70.0,
-                      child: Text("0",
+                      child: Text(playerCount.toString(),
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 60.0))),
                   Container(
                       alignment: Alignment.center,
                       width: 150.0,
                       height: 70.0,
-                      child: Text("0",
+                      child: Text(houseCount.toString(),
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 60.0))),
                 ]),
               ]),
             ),
+            Container(
+              margin: const EdgeInsets.only(top: 10.0),
+              width: 220,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      playerHits();
+                    },
+                    child: const Text('Hit'),
+                    style: ElevatedButton.styleFrom(
+                        fixedSize: const Size(100, 50), primary: Colors.blue),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text('Stand'),
+                    style: ElevatedButton.styleFrom(
+                        fixedSize: const Size(100, 50), primary: Colors.blue),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  // ACTION METHODS
+  void dealCards() {
+    setState(() {
+      var msNow = DateTime.now().millisecondsSinceEpoch;
+      int card = Random(msNow).nextInt(10);
+      houseCount += card;
+
+      msNow = DateTime.now().millisecondsSinceEpoch;
+      card = Random(msNow).nextInt(10);
+      houseCount += card;
+
+      msNow = DateTime.now().millisecondsSinceEpoch;
+      card = Random(msNow).nextInt(10);
+      playerCount += card;
+
+      msNow = DateTime.now().millisecondsSinceEpoch;
+      card = Random(msNow).nextInt(10);
+      playerCount += card;
+    });
+  }
+
+  void playerHits() {
+    setState(() {
+      var msNow = DateTime.now().millisecondsSinceEpoch;
+      int card = Random(msNow).nextInt(10);
+
+      playerCount += card;
+      // If player busts, tell that
+      if (playerCount > 21) {
+        showMessage("Bust! You lose!");
+      }
+    });
+  }
+
+  void showMessage(String msgText) {
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Flutter Blackjack'),
+        content: Text(msgText),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              playerLoses();
+              Navigator.pop(context, 'OK');
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void playerLoses() {
+    setState(() {
+      bank = bank - wager;
+      print(">>> bank = " + bank.toString());
+      // a redraw is automatically triggered since setState() is fired
+
+      wager = 0;
+      playerCount = 0;
+      houseCount = 0;
+      sbGameState = StringBuffer("wager");
+    });
   }
 }
