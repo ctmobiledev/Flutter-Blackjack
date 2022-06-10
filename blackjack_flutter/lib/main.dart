@@ -156,6 +156,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 onSubmitted: (value) {
                   setState(() {
                     print(">>> Value entered: $value");
+
+                    // make sure a wager was entered
+                    if (txtWager.text.trim() == "") {
+                      showMessage("What, no wager?");
+                      return;
+                    }
+
                     wager = int.tryParse(value) ?? 0;
                     sbGameState = StringBuffer("deal");
 
@@ -230,7 +237,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         fixedSize: const Size(100, 50), primary: Colors.blue),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      houseHits();
+                    },
                     child: const Text('Stand'),
                     style: ElevatedButton.styleFrom(
                         fixedSize: const Size(100, 50), primary: Colors.blue),
@@ -246,36 +255,94 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // ACTION METHODS
   void dealCards() {
+    print(">>> dealCards()");
     setState(() {
       var msNow = DateTime.now().millisecondsSinceEpoch;
-      int card = Random(msNow).nextInt(10);
+
+      // NOTE: a seed is only needed the first call - was getting pairs of numbers and
+      // the time presumably hadn't changed quickly enough
+
+      int card = Random(msNow).nextInt(10) + 1;
       houseCount += card;
+      print(">>> houseCount 1 = " + houseCount.toString());
 
-      msNow = DateTime.now().millisecondsSinceEpoch;
-      card = Random(msNow).nextInt(10);
+      //msNow = DateTime.now().millisecondsSinceEpoch;
+      card = Random().nextInt(10) + 1;
       houseCount += card;
+      print(">>> houseCount 2 = " + houseCount.toString());
 
-      msNow = DateTime.now().millisecondsSinceEpoch;
-      card = Random(msNow).nextInt(10);
+      //msNow = DateTime.now().millisecondsSinceEpoch;
+      card = Random().nextInt(10) + 1;
       playerCount += card;
+      print(">>> playerCount 1 = " + playerCount.toString());
 
-      msNow = DateTime.now().millisecondsSinceEpoch;
-      card = Random(msNow).nextInt(10);
+      //msNow = DateTime.now().millisecondsSinceEpoch;
+      card = Random().nextInt(10) + 1;
       playerCount += card;
+      print(">>> playerCount 2 = " + playerCount.toString());
     });
   }
 
   void playerHits() {
     setState(() {
       var msNow = DateTime.now().millisecondsSinceEpoch;
-      int card = Random(msNow).nextInt(10);
+      int card = Random(msNow).nextInt(10) + 1;
 
       playerCount += card;
-      // If player busts, tell that
+
+      // Determine the outcome
+
+      if (playerCount == 21) {
+        playerWins(1.5);
+        showMessage("21! You win 3:2 on your wager!\nYou now have \$$bank.");
+      }
+
       if (playerCount > 21) {
-        showMessage("Bust! You lose!");
+        playerLoses();
+        showMessage("Bust! You lose!\nYou now have \$$bank.");
       }
     });
+  }
+
+  void houseHits() {
+    setState(() {
+      var msNow = DateTime.now().millisecondsSinceEpoch;
+      int card = Random(msNow).nextInt(10) + 1;
+
+      if (houseCount < 17) {
+        houseCount += card;
+
+        if (houseCount >= 17) {
+          if (houseCount > 21) {
+            // automatic win, house busts
+            showMessage("You win! House busts!\nYou now have \$$bank.");
+            playerWins(1.0); // regular odds, even money
+          } else {
+            compareHands();
+          }
+        }
+      } else {
+        compareHands(); // house is at 17+ already, do it right now
+      }
+
+      // House must take cards until 17 or over
+    });
+  }
+
+  void compareHands() {
+    if (houseCount > playerCount) {
+      playerLoses();
+      showMessage(
+          "House wins! House $houseCount beats your $playerCount.\nYou now have \$$bank.");
+    } else if (playerCount > houseCount) {
+      playerWins(1.0); // regular odds, even money
+      showMessage(
+          "You win! Your $playerCount beats House's $houseCount.\nYou now have \$$bank.");
+    } else {
+      // it's a push - no win, no loss
+      playerWins(0); // resets game state anyway
+      showMessage("It's a push! Counts are equal.\nYou still have \$$bank.");
+    }
   }
 
   void showMessage(String msgText) {
@@ -287,8 +354,14 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           TextButton(
             onPressed: () {
-              playerLoses();
               Navigator.pop(context, 'OK');
+              setState(() {
+                playerCount = 0;
+                houseCount = 0;
+
+                wager = 0;
+                txtWager.text = "";
+              });
             },
             child: const Text('OK'),
           ),
@@ -300,12 +373,19 @@ class _MyHomePageState extends State<MyHomePage> {
   void playerLoses() {
     setState(() {
       bank = bank - wager;
-      print(">>> bank = " + bank.toString());
+      print(">>> playerLoses() - bank = " + bank.toString());
       // a redraw is automatically triggered since setState() is fired
 
-      wager = 0;
-      playerCount = 0;
-      houseCount = 0;
+      sbGameState = StringBuffer("wager");
+    });
+  }
+
+  void playerWins(double dblMultiplier) {
+    setState(() {
+      bank = (bank.toDouble() + (dblMultiplier * wager.toDouble())).toInt();
+      print(">>> playerLoses() - bank = " + bank.toString());
+      // a redraw is automatically triggered since setState() is fired
+
       sbGameState = StringBuffer("wager");
     });
   }
