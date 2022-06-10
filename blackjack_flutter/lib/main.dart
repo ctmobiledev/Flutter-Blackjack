@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
+        fontFamily: 'OpenSans',
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Blackjack'),
@@ -161,7 +162,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     margin: const EdgeInsets.only(bottom: 10.0),
                     child: Text('\$$bank',
                         style: const TextStyle(
-                            fontSize: 60.0, color: Colors.white))),
+                            fontSize: 60.0,
+                            fontFamily: 'GasPumpLCD',
+                            color: Colors.white))),
                 Container(
                   margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                   child: const Text(
@@ -199,7 +202,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         dealCards();
                       });
                     },
-                    style: TextStyle(fontSize: 30.0),
+                    style: const TextStyle(
+                        fontSize: 52.0, fontFamily: 'GasPumpLCD'),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: "",
@@ -254,7 +258,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           height: 70.0,
                           child: Text(playerCount.toString(),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 60.0))),
+                              style: const TextStyle(
+                                  fontSize: 60.0, fontFamily: 'GasPumpLCD'))),
                       Container(
                           alignment: Alignment.center,
                           width: statusCellWidth,
@@ -262,14 +267,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Text(lastCard.toString(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontSize: 48.0, color: Colors.blue))),
+                                  fontSize: 48.0,
+                                  fontFamily: 'GasPumpLCD',
+                                  color: Colors.blue))),
                       Container(
                           alignment: Alignment.center,
                           width: statusCellWidth,
                           height: 70.0,
                           child: Text(houseCount.toString(),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 60.0))),
+                              style: const TextStyle(
+                                  fontSize: 60.0, fontFamily: 'GasPumpLCD'))),
                     ]),
                   ]),
                 ),
