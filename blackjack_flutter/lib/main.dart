@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:async'; // for timer functions, Credit: https://stackoverflow.com/questions/14946012/how-do-i-run-a-reoccurring-function-in-dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,27 +60,49 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Timer? timer;
 
+  List<String> cardRanks = [
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10',
+    'J',
+    'Q',
+    'K',
+    'A'
+  ];
+  List<int> cardValues = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1];
+
   int bank = 1000;
   int wager = 0;
   int houseCount = 0;
   int playerCount = 0;
   int lastCard = 0;
+  StringBuffer sbLastCard = StringBuffer("");
 
   double statusCellWidth =
       120.0; // MUST RESTART APP TO SEE CHANGES; ONCE OUTER WIDGET RENDERED, DOES NOT CHANGE DYNAMICALLY
   double statusTableWidth = 0.0; // couldn't set value here; see the main() call
 
-  bool buttonsDisabled = true; // a little backwards; should be "enabled" IMO
+  bool hitStandButtonsDisabled =
+      true; // a little backwards; should be "enabled" IMO
   var enabledButtonStyle = ElevatedButton.styleFrom(
       fixedSize: const Size(100, 50), primary: Colors.blue);
   var disabledButtonStyle = ElevatedButton.styleFrom(
       fixedSize: const Size(100, 50), primary: Colors.grey);
 
+  bool messageVisible = true; // a little backwards; should be "enabled" IMO
+
   StringBuffer sbGameState = StringBuffer("wager");
+  StringBuffer sbMessage = StringBuffer(
+      "Welcome to the casino!\nEnter your wager in the blue box above and press Enter.");
+  String strNextWagerMsg = "\nPlace your next wager.";
 
   // Game states: wager, deal, player, house, pay
-
-  int newCardRank = 0; // value from 1 to 10
 
   // One of these is needed for each text field, and the dispose() method
   // is needed to do cleanup per each object.
@@ -119,7 +142,10 @@ class _MyHomePageState extends State<MyHomePage> {
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
           // The parent object has this.
-          title: Text(widget.title),
+          title: Text(
+            widget.title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         body: SingleChildScrollView(
           child: Center(
@@ -144,21 +170,19 @@ class _MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 // a list of widgets
                 Container(
-                  margin: const EdgeInsets.only(top: 30.0, bottom: 10.0),
-                  child: const Text('Welcome to Flutter Blackjack!',
-                      style: TextStyle(fontSize: 26.0)),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10.0),
+                  margin: const EdgeInsets.only(top: 20.0, bottom: 10.0),
                   child: const Text(
                     'Current Bankroll',
+                    style:
+                        TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Container(
                     alignment: Alignment.center,
                     width: 250,
+                    height: 70,
                     color: Colors.black,
-                    padding: const EdgeInsets.only(bottom: 7.0),
+                    padding: const EdgeInsets.only(top: 15.0, bottom: 0.0),
                     margin: const EdgeInsets.only(bottom: 10.0),
                     child: Text('\$$bank',
                         style: const TextStyle(
@@ -168,30 +192,45 @@ class _MyHomePageState extends State<MyHomePage> {
                 Container(
                   margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                   child: const Text(
-                    'Type your wager below and press Enter:',
+                    'Wager',
+                    style:
+                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Container(
                   width: 200,
-                  height: 60,
-                  margin: const EdgeInsets.only(bottom: 20.0),
+                  height: 70,
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.blue, width: 3.0)),
+                  padding: const EdgeInsets.only(top: 5.0),
+                  margin: const EdgeInsets.only(bottom: 10.0),
                   child: TextField(
+                    // Credit: https://www.flutterbeads.com/numeric-input-keyboard-in-flutter/
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     textAlign: TextAlign.center,
                     controller: txtWager,
                     onSubmitted: (value) {
                       setState(() {
                         print(">>> Value entered: $value");
 
+                        // switch off the message
+                        messageVisible = false;
+
+                        // clear the last card
+                        lastCard = 0;
+                        sbLastCard.clear();
+
                         // make sure a wager was entered
                         if (txtWager.text.trim() == "") {
-                          showMessage("What, no wager?");
+                          showAlertDialog("What, no wager?");
                           return;
                         }
 
                         // unlock buttons
-                        buttonsDisabled = false;
+                        hitStandButtonsDisabled = false;
                         print(">>> buttonsDisabled = " +
-                            buttonsDisabled.toString());
+                            hitStandButtonsDisabled.toString());
 
                         wager = int.tryParse(value) ?? 0;
                         sbGameState = StringBuffer("deal");
@@ -204,10 +243,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                     style: const TextStyle(
                         fontSize: 52.0, fontFamily: 'GasPumpLCD'),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "",
-                    ),
                   ),
                 ),
                 Container(
@@ -216,8 +251,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           color: Colors.black)), // ADDS TO HEIGHT, WIDTH
                   alignment: Alignment.center,
                   width: statusTableWidth,
-                  height: 132, // WARNING: COMPILER FLAGS OVERRUNS OF THE PARENT
-                  margin: const EdgeInsets.only(top: 10.0, bottom: 5.0),
+                  height: 114, // WARNING: COMPILER FLAGS OVERRUNS OF THE PARENT
+                  margin: const EdgeInsets.only(top: 20.0, bottom: 20.0),
                   child: Column(children: [
                     Row(children: [
                       Container(
@@ -256,6 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           alignment: Alignment.center,
                           width: statusCellWidth,
                           height: 70.0,
+                          padding: const EdgeInsets.only(top: 15.0),
                           child: Text(playerCount.toString(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
@@ -263,17 +299,19 @@ class _MyHomePageState extends State<MyHomePage> {
                       Container(
                           alignment: Alignment.center,
                           width: statusCellWidth,
-                          height: 52.0,
-                          child: Text(lastCard.toString(),
+                          height: 44.0,
+                          padding: const EdgeInsets.only(top: 0.0),
+                          child: Text(sbLastCard.toString(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontSize: 48.0,
-                                  fontFamily: 'GasPumpLCD',
+                                  fontSize: 30.0,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.blue))),
                       Container(
                           alignment: Alignment.center,
                           width: statusCellWidth,
                           height: 70.0,
+                          padding: const EdgeInsets.only(top: 15.0),
                           child: Text(houseCount.toString(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
@@ -291,44 +329,95 @@ class _MyHomePageState extends State<MyHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: buttonsDisabled
+                        onPressed: hitStandButtonsDisabled
                             ? () {
                                 // nop - change color?
                               }
                             : () {
                                 playerHits();
                               },
-                        style: buttonsDisabled
+                        style: hitStandButtonsDisabled
                             ? disabledButtonStyle
                             : enabledButtonStyle,
-                        child: const Text('Hit'),
+                        child: const Text(
+                          'Hit',
+                          style: TextStyle(
+                              fontSize: 22.0, fontWeight: FontWeight.bold),
+                        ),
                       ),
                       ElevatedButton(
-                        onPressed: buttonsDisabled
+                        onPressed: hitStandButtonsDisabled
                             ? () {
                                 // lock buttons
-                                buttonsDisabled = true;
+                                hitStandButtonsDisabled = true;
                                 print(">>> buttonsDisabled = " +
-                                    buttonsDisabled.toString());
+                                    hitStandButtonsDisabled.toString());
                               }
                             : () {
                                 housePlays();
                               },
-                        style: buttonsDisabled
+                        style: hitStandButtonsDisabled
                             ? disabledButtonStyle
                             : enabledButtonStyle,
-                        child: const Text('Stand'),
+                        child: const Text(
+                          'Stand',
+                          style: TextStyle(
+                              fontSize: 22.0, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
                 ),
+                Visibility(
+                    visible: messageVisible,
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10.0),
+                          padding:
+                              const EdgeInsets.only(left: 20.0, right: 20.0),
+                          child: Text(
+                            sbMessage.toString(),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 20.0,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                        /*  MAY USE THIS LATER
+                        SizedBox(
+                          height: 5.0,
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                messageVisible = false;
+                              });
+                            },
+                            style: enabledMsgButtonStyle,
+                            child: const Text('OK')),
+                        */
+                      ],
+                    )),
+                Container(),
               ],
             ),
           ),
         ));
   }
 
+  //***********************************************
   // ACTION METHODS
+  //***********************************************
+
+  void resetForNextRound() {
+    setState(() {
+      txtWager.text = "";
+      hitStandButtonsDisabled = true;
+    });
+  }
+
   void dealCards() {
     print(">>> dealCards()");
     setState(() {
@@ -337,16 +426,19 @@ class _MyHomePageState extends State<MyHomePage> {
       // NOTE: a seed is only needed the first call - was getting pairs of numbers and
       // the time presumably hadn't changed quickly enough
 
-      int card = Random().nextInt(10) + 1;
-      playerCount += card;
+      int card = Random(msNow).nextInt(13);
+      playerCount += cardValues[card];
       print(">>> playerCount 1 = " + playerCount.toString());
 
-      card = Random().nextInt(10) + 1;
-      playerCount += card;
+      card = Random().nextInt(13);
+      playerCount += cardValues[card];
       print(">>> playerCount 2 = " + playerCount.toString());
 
-      card = Random(msNow).nextInt(10) + 1;
-      houseCount += card;
+      card = Random().nextInt(13);
+      houseCount += cardValues[card];
+      if (houseCount == 1) {
+        houseCount = 11; // assume an Ace is showing at this point
+      }
       print(">>> houseCount 1 = " + houseCount.toString());
 
       // HOUSE gets one card up
@@ -359,28 +451,44 @@ class _MyHomePageState extends State<MyHomePage> {
   void playerHits() {
     setState(() {
       var msNow = DateTime.now().millisecondsSinceEpoch;
-      int card = Random(msNow).nextInt(10) + 1;
+      int card = Random(msNow).nextInt(13);
 
-      lastCard = card;
-      playerCount += card;
+      // work the Ace magic here
+      lastCard = cardValues[card];
+      sbLastCard = StringBuffer(cardRanks[card]);
+
+      if (lastCard != 1) {
+        playerCount += cardValues[card];
+      } else {
+        // could be a 1 or 11
+        if (playerCount < 11) {
+          playerCount += 11;
+        } else {
+          playerCount += 1;
+        }
+      }
 
       // Determine the outcome
 
       if (playerCount == 21) {
         playerWins(1.5);
-        showMessage("21! You win 3:2 on your wager!\nYou now have \$$bank.");
+        showMessage("21! You win 3:2 on your wager!\nYou now have \$$bank." +
+            placeNextWagerMsg(bank));
+        resetForNextRound();
       }
 
       if (playerCount > 21) {
         playerLoses();
-        showMessage("Bust! You lose!\nYou now have \$$bank.");
+        showMessage(
+            "Bust! You lose!\nYou now have \$$bank." + placeNextWagerMsg(bank));
+        resetForNextRound();
       }
     });
   }
 
   void housePlays() {
     setState(() {
-      buttonsDisabled = true;
+      hitStandButtonsDisabled = true;
       timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
         houseHits();
       });
@@ -390,18 +498,22 @@ class _MyHomePageState extends State<MyHomePage> {
   void houseHits() {
     setState(() {
       var msNow = DateTime.now().millisecondsSinceEpoch;
-      int card = Random(msNow).nextInt(10) + 1;
+      int card = Random(msNow).nextInt(13);
 
+      // No Ace magic for house?
       if (houseCount < 17) {
-        lastCard = card;
-        houseCount += card;
+        lastCard = cardValues[card];
+        sbLastCard = StringBuffer(cardRanks[card]);
+        houseCount += cardValues[card];
 
         if (houseCount >= 17) {
           if (houseCount > 21) {
             // automatic win, house busts
             timer?.cancel();
             playerWins(1.0); // regular odds, even money
-            showMessage("You win! House busts!\nYou now have \$$bank.");
+            showMessage("You win! House busts!\nYou now have \$$bank." +
+                placeNextWagerMsg(bank));
+            resetForNextRound();
           } else {
             compareHands();
           }
@@ -419,20 +531,23 @@ class _MyHomePageState extends State<MyHomePage> {
     if (houseCount > playerCount) {
       playerLoses();
       showMessage(
-          "House wins! House $houseCount beats your $playerCount.\nYou now have \$$bank.");
+          "House wins! House $houseCount beats your $playerCount.\nYou now have \$$bank." +
+              placeNextWagerMsg(bank));
     } else if (playerCount > houseCount) {
       playerWins(1.0); // regular odds, even money
       showMessage(
-          "You win! Your $playerCount beats House's $houseCount.\nYou now have \$$bank.");
+          "You win! Your $playerCount beats House's $houseCount.\nYou now have \$$bank." +
+              placeNextWagerMsg(bank));
     } else {
       // it's a push - no win, no loss
       playerWins(0); // resets game state anyway
-      showMessage("It's a push! Counts are equal.\nYou still have \$$bank.");
+      showMessage("It's a push! Counts are equal.\nYou still have \$$bank." +
+          placeNextWagerMsg(bank));
     }
+    resetForNextRound();
   }
 
-  void showMessage(String msgText) {
-    timer?.cancel();
+  void showAlertDialog(String msgText) {
     showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -442,13 +557,21 @@ class _MyHomePageState extends State<MyHomePage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context, 'OK');
-              resetGameState();
             },
             child: const Text('OK'),
           ),
         ],
       ),
     );
+  }
+
+  void showMessage(String msgText) {
+    timer?.cancel();
+
+    setState(() {
+      messageVisible = true;
+      sbMessage = StringBuffer(msgText);
+    });
   }
 
   void playerLoses() {
@@ -476,14 +599,23 @@ class _MyHomePageState extends State<MyHomePage> {
       playerCount = 0;
       houseCount = 0;
       lastCard = 0;
+      sbLastCard.clear();
 
       wager = 0;
       txtWager.text = "";
 
       // re-lock buttons
-      buttonsDisabled = true;
+      hitStandButtonsDisabled = true;
       print(">>> resetGameState - buttonsDisabled = " +
-          buttonsDisabled.toString());
+          hitStandButtonsDisabled.toString());
     });
+  }
+}
+
+String placeNextWagerMsg(int lastBank) {
+  if (lastBank <= 0) {
+    return "\nYou are officially BROKE!\nFor more funds, just restart the game!";
+  } else {
+    return "\nPlace your next wager.";
   }
 }
