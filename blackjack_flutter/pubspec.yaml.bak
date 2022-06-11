@@ -94,8 +94,10 @@ flutter:
          - asset: fonts/OpenSans-Italic.ttf
            style: italic
          - asset: fonts/OpenSans-Bold.ttf
-           weight: 500
+           style: bold
      - family: GasPumpLCD
        fonts:
-         - asset: fonts/gaspumplcd.ttf
+         - asset: fonts/TrajanPro.ttf
+         - asset: fonts/TrajanPro_Bold.ttf
+           weight: 700
   
