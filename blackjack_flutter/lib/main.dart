@@ -23,6 +23,24 @@ HOME SCREEN
 **********************************************************************************
 */
 
+const Color themeColor =
+    Color.fromRGBO(23, 130, 212, 1); // = 0xFF1782d4, set separately below
+const Map<int, Color> themeColorMap = {
+  // all these values required for definition.
+  // I don't need shades of the color so I've defaulted them all to a single constant
+  50: themeColor,
+  100: themeColor,
+  200: themeColor,
+  300: themeColor,
+  400: themeColor,
+  500: themeColor,
+  600: themeColor,
+  700: themeColor,
+  800: themeColor,
+  900: themeColor,
+};
+MaterialColor? themeColorMaterial = MaterialColor(0xFF1782d4, themeColorMap);
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -36,13 +54,13 @@ class MyApp extends StatelessWidget {
         //
         // Try running your application with "flutter run". You'll see the
         // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
+        // changing the primarySwatch below to Colors.orange and then invoke
         // "hot reload" (press "r" in the console where you ran "flutter run",
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
         fontFamily: 'OpenSans',
-        primarySwatch: Colors.blue,
+        primarySwatch: themeColorMaterial,
       ),
       home: const MyHomePage(title: 'Flutter Blackjack'),
       debugShowCheckedModeBanner: false,
@@ -104,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool hitStandButtonsDisabled =
       true; // a little backwards; should be "enabled" IMO
   var enabledButtonStyle = ElevatedButton.styleFrom(
-      fixedSize: const Size(100, 50), primary: Colors.blue);
+      fixedSize: const Size(100, 50), primary: themeColor);
   var disabledButtonStyle = ElevatedButton.styleFrom(
       fixedSize: const Size(100, 50), primary: Colors.grey);
 
@@ -152,6 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     statusTableWidth = (3 * statusCellWidth) + 2.0;
+
     return Scaffold(
         bottomNavigationBar: BottomAppBar(
           color: Colors.transparent,
@@ -222,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: const TextStyle(
                           fontSize: 60.0,
                           fontFamily: 'GasPumpLCD',
-                          color: Colors.white))),
+                          color: Colors.orange))),
               Container(
                 margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                 child: const Text(
@@ -234,7 +253,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: 200,
                 height: 70,
                 decoration: BoxDecoration(
-                    border: Border.all(color: Colors.blue, width: 3.0)),
+                    border: Border.all(color: themeColor, width: 3.0)),
                 padding: const EdgeInsets.only(top: 5.0),
                 margin: const EdgeInsets.only(bottom: 10.0),
                 child: TextField(
@@ -274,8 +293,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       dealCards();
                     });
                   },
-                  style:
-                      const TextStyle(fontSize: 52.0, fontFamily: 'GasPumpLCD'),
+                  style: const TextStyle(
+                      fontSize: 52.0,
+                      fontFamily: 'GasPumpLCD',
+                      color: themeColor),
                 ),
               ),
               Container(
@@ -289,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(children: [
                   Row(children: [
                     Container(
-                        color: Colors.green,
+                        color: Colors.orange,
                         alignment: Alignment.center,
                         width: statusCellWidth,
                         height: 40.0,
@@ -299,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           style: TextStyle(color: Colors.white),
                         )),
                     Container(
-                        color: Colors.blue,
+                        color: themeColor,
                         alignment: Alignment.center,
                         width: statusCellWidth,
                         height: 40.0,
@@ -309,7 +330,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           style: TextStyle(color: Colors.white),
                         )),
                     Container(
-                        color: Colors.green,
+                        color: Colors.orange,
                         alignment: Alignment.center,
                         width: statusCellWidth,
                         height: 40.0,
@@ -328,7 +349,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Text(playerCount.toString(),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                                fontSize: 60.0, fontFamily: 'GasPumpLCD'))),
+                                fontSize: 60.0,
+                                fontFamily: 'GasPumpLCD',
+                                color: Colors.black))),
                     Container(
                         alignment: Alignment.center,
                         width: statusCellWidth,
@@ -339,7 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             style: const TextStyle(
                                 fontSize: 30.0,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue))),
+                                color: themeColor))),
                     Container(
                         alignment: Alignment.center,
                         width: statusCellWidth,
@@ -348,7 +371,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Text(houseCount.toString(),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                                fontSize: 60.0, fontFamily: 'GasPumpLCD'))),
+                                fontSize: 60.0,
+                                fontFamily: 'GasPumpLCD',
+                                color: Colors.black))),
                   ]),
                 ]),
               ),
@@ -413,7 +438,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 20.0,
-                            color: Colors.blue,
+                            color: themeColor,
                           ),
                         ),
                       ),
@@ -519,7 +544,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void housePlays() {
     setState(() {
       hitStandButtonsDisabled = true;
-      timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      timer = Timer.periodic(Duration(milliseconds: 750), (timer) {
         houseHits();
       });
     });
