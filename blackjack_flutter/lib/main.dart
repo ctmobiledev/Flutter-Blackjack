@@ -126,13 +126,20 @@ class _MyHomePageState extends State<MyHomePage> {
   var disabledButtonStyle = ElevatedButton.styleFrom(
       fixedSize: const Size(100, 50), primary: Colors.grey);
 
+  bool wagerButtonDisabled =
+      false; // a little backwards; should be "enabled" IMO
+  var enabledWagerButtonStyle = ElevatedButton.styleFrom(
+      fixedSize: const Size(120, 70), primary: themeColor);
+  var disabledWagerButtonStyle = ElevatedButton.styleFrom(
+      fixedSize: const Size(120, 70), primary: Colors.grey);
+
   var aboutButtonStyle = ElevatedButton.styleFrom(primary: Colors.black);
 
   bool messageVisible = true; // a little backwards; should be "enabled" IMO
 
   StringBuffer sbGameState = StringBuffer("wager");
   StringBuffer sbMessage = StringBuffer(
-      "Welcome to the casino!\nEnter your wager in the blue box above and press Enter.");
+      "Welcome to the casino!\nEnter your wager in the blue box above and press the Wager button.");
   String strNextWagerMsg = "\nPlace your next wager.";
 
   // Game states: wager, deal, player, house, pay
@@ -179,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 300.0,
               height: 50.0,
               margin: const EdgeInsets.only(
-                  left: 100.0, right: 100.0, bottom: 30.0),
+                  left: 100.0, right: 100.0, bottom: 18.0),
               child: ElevatedButton(
                   style: aboutButtonStyle,
                   onPressed: () {
@@ -224,80 +231,78 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               // a list of widgets
               Container(
-                margin: const EdgeInsets.only(top: 20.0, bottom: 10.0),
+                margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                 child: const Text(
                   'Current Bankroll',
                   style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
                 ),
               ),
-              Container(
-                  alignment: Alignment.center,
-                  width: 250,
-                  height: 70,
-                  color: Colors.black,
-                  padding: const EdgeInsets.only(top: 15.0, bottom: 0.0),
-                  margin: const EdgeInsets.only(bottom: 10.0),
-                  child: Text('\$$bank',
-                      style: const TextStyle(
-                          fontSize: 60.0,
-                          fontFamily: 'GasPumpLCD',
-                          color: Colors.orange))),
-              Container(
-                margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: const Text(
-                  'Wager',
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                      alignment: Alignment.center,
+                      width: 250,
+                      height: 70,
+                      color: Colors.black,
+                      padding: const EdgeInsets.only(top: 15.0, bottom: 0.0),
+                      margin: const EdgeInsets.only(bottom: 5.0),
+                      child: Text('\$$bank',
+                          style: const TextStyle(
+                              fontSize: 60.0,
+                              fontFamily: 'GasPumpLCD',
+                              color: Colors.orange))),
+                ],
               ),
-              Container(
-                width: 200,
-                height: 70,
-                decoration: BoxDecoration(
-                    border: Border.all(color: themeColor, width: 3.0)),
-                padding: const EdgeInsets.only(top: 5.0),
-                margin: const EdgeInsets.only(bottom: 10.0),
-                child: TextField(
-                  // Credit: https://www.flutterbeads.com/numeric-input-keyboard-in-flutter/
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.center,
-                  controller: txtWager,
-                  onSubmitted: (value) {
-                    setState(() {
-                      print(">>> Value entered: $value");
-
-                      // switch off the message
-                      messageVisible = false;
-
-                      // clear the last card
-                      lastCard = 0;
-                      sbLastCard.clear();
-
-                      // make sure a wager was entered
-                      if (txtWager.text.trim() == "") {
-                        showAlertDialog("What, no wager?");
-                        return;
-                      }
-
-                      // unlock buttons
-                      hitStandButtonsDisabled = false;
-                      print(">>> buttonsDisabled = " +
-                          hitStandButtonsDisabled.toString());
-
-                      wager = int.tryParse(value) ?? 0;
-                      sbGameState = StringBuffer("deal");
-
-                      playerCount = 0;
-                      houseCount = 0;
-
-                      dealCards();
-                    });
-                  },
-                  style: const TextStyle(
-                      fontSize: 52.0,
-                      fontFamily: 'GasPumpLCD',
-                      color: themeColor),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 200,
+                    height: 70,
+                    decoration: BoxDecoration(
+                        border: Border.all(color: themeColor, width: 3.0)),
+                    padding: const EdgeInsets.only(top: 5.0),
+                    margin: const EdgeInsets.only(
+                        top: 10.0, bottom: 10.0, right: 10.0),
+                    child: TextField(
+                      // Credit: https://www.flutterbeads.com/numeric-input-keyboard-in-flutter/
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textAlign: TextAlign.center,
+                      controller: txtWager,
+                      style: const TextStyle(
+                          fontSize: 52.0,
+                          fontFamily: 'GasPumpLCD',
+                          color: themeColor),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: wagerButtonDisabled
+                        ? () {
+                            // nop - change color?
+                          }
+                        : () {
+                            // logic for Enter pressed including closing of numpad
+                            // make sure a wager was entered
+                            if (txtWager.text.trim() == "") {
+                              showAlertDialog("What, no wager?");
+                              return;
+                            } else {
+                              closeNumpad();
+                              recordWager(txtWager.text);
+                            }
+                          },
+                    style: wagerButtonDisabled
+                        ? disabledWagerButtonStyle
+                        : enabledWagerButtonStyle,
+                    child: const Text(
+                      'Wager',
+                      style: TextStyle(
+                          fontSize: 22.0, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
               Container(
                 decoration: BoxDecoration(
@@ -306,7 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 alignment: Alignment.center,
                 width: statusTableWidth,
                 height: 114, // WARNING: COMPILER FLAGS OVERRUNS OF THE PARENT
-                margin: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+                margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                 child: Column(children: [
                   Row(children: [
                     Container(
@@ -379,7 +384,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               // https://stackoverflow.com/questions/49351648/how-do-i-disable-a-button-in-flutter
               Container(
-                margin: const EdgeInsets.only(top: 10.0, bottom: 30.0),
+                margin: const EdgeInsets.only(top: 5.0, bottom: 10.0),
                 width: 220,
                 alignment: Alignment.center,
                 child: Row(
@@ -437,7 +442,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           sbMessage.toString(),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 20.0,
+                            fontSize: 18.0,
                             color: themeColor,
                           ),
                         ),
@@ -465,6 +470,52 @@ class _MyHomePageState extends State<MyHomePage> {
   //***********************************************
   // ACTION METHODS
   //***********************************************
+
+  void closeNumpad() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void recordWager(String value) {
+    setState(() {
+      print(">>> Value entered: $value");
+
+      // switch off the message
+      messageVisible = false;
+
+      wager = int.tryParse(value) ?? 0;
+
+      if (wager > bank) {
+        showAlertDialog("Nice try. You don't have that much money!");
+        return;
+      }
+
+      // lock the wager button
+      wagerButtonDisabled = true;
+
+      // clear the last card
+      lastCard = 0;
+      sbLastCard.clear();
+
+      // unlock hit and stand buttons
+      hitStandButtonsDisabled = false;
+      print(">>> hitStandButtonsDisabled = " +
+          hitStandButtonsDisabled.toString());
+
+      sbGameState = StringBuffer("deal");
+
+      playerCount = 0;
+      houseCount = 0;
+
+      dealCards();
+    });
+  }
+
+  void resetCardCounts() {
+    setState(() {
+      txtWager.text = "";
+      hitStandButtonsDisabled = true;
+    });
+  }
 
   void resetForNextRound() {
     setState(() {
@@ -635,6 +686,12 @@ class _MyHomePageState extends State<MyHomePage> {
       print(">>> playerLoses() - bank = " + bank.toString());
       // a redraw is automatically triggered since setState() is fired
 
+      if (bank > 0) {
+        wagerButtonDisabled = false;
+      } else {
+        wagerButtonDisabled = true; // no more betting
+      }
+
       sbGameState = StringBuffer("wager");
     });
   }
@@ -642,14 +699,16 @@ class _MyHomePageState extends State<MyHomePage> {
   void playerWins(double dblMultiplier) {
     setState(() {
       bank = (bank.toDouble() + (dblMultiplier * wager.toDouble())).toInt();
-      print(">>> playerLoses() - bank = " + bank.toString());
+      print(">>> playerWins() - bank = " + bank.toString());
       // a redraw is automatically triggered since setState() is fired
+
+      wagerButtonDisabled = false;
 
       sbGameState = StringBuffer("wager");
     });
   }
 
-  void resetGameState() {
+  void resetForNextHand() {
     setState(() {
       playerCount = 0;
       houseCount = 0;
@@ -665,13 +724,18 @@ class _MyHomePageState extends State<MyHomePage> {
           hitStandButtonsDisabled.toString());
     });
   }
-}
 
-String placeNextWagerMsg(int lastBank) {
-  if (lastBank <= 0) {
-    return "\nYou are officially BROKE!\nFor more funds, just restart the game!";
-  } else {
-    return "\nPlace your next wager.";
+  String placeNextWagerMsg(int lastBank) {
+    String? outMsg;
+
+    if (lastBank <= 0) {
+      outMsg =
+          "\nYou are officially BROKE!\nFor more funds, just restart the game!";
+    } else {
+      outMsg = "\nPlace your next wager.";
+    }
+
+    return outMsg;
   }
 }
 
@@ -701,13 +765,16 @@ class AboutPageRoute extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          margin: EdgeInsets.only(left: 50.0, right: 50.0),
+          margin: EdgeInsets.only(left: 30.0, right: 30.0),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(
               'This app is the first app I used to learn how to '
               'write for Flutter using Dart.  The Blackjack game '
               'represented is a simplified version, so there\'s no splitting '
-              'of hands, no insurance bets, or any of the fancy stuff.\n\n'
+              'of hands, no insurance bets, or any of the fancy stuff. '
+              'This also presumes an infinite "shoe" of multiple decks of cards '
+              'so forget about card counting.'
+              '\n\n'
               'This project turned out to be a decent working model of a number of '
               'different Flutter and Dart concepts including detection of '
               'button press events, styling of controls, and (perhaps especially) '
