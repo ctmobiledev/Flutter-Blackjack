@@ -1,3 +1,15 @@
+/*
+******************************************************************************
+
+FLUTTER BLACKJACK
+A demo of basic Dart and Flutter concepts
+
+Author: Charles Tatum II
+Original Creation Date: June 2022
+
+******************************************************************************
+*/
+
 // ignore_for_file: prefer_const_constructors, avoid_print, prefer_interpolation_to_compose_strings
 
 import 'dart:math';
@@ -44,21 +56,11 @@ MaterialColor? themeColorMaterial = MaterialColor(0xFF1782d4, themeColorMap);
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.orange and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         fontFamily: 'OpenSans',
         primarySwatch: themeColorMaterial,
       ),
@@ -70,15 +72,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -156,18 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  // SAMPLE METHOD/ROUTINE TO CHANGE VARIABLES - REQUIRES setState()
-  /*
-  void _incrementCounter() {
-    setState(() {
-      // Any actions to change any variables go inside setState() - a bit
-      // superfluous for most programming platforms, but required here.
-      // A call here triggers the build() method, which repaints widgets.
-      //_counter++;
-    });
-  }
-  */
-
   /*
   ALL THE ACTION TAKES PLACE IN THE SCAFFOLD INSIDE THE WIDGET.
   THE MAIN LAYOUT REALLY RESIDES HERE. IT SERVES AS THE FRAME OR STAGE
@@ -200,33 +181,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: const Text('About This App'))),
         ),
         appBar: AppBar(
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          // The parent object has this.
           title: Text(
             widget.title,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         body: SingleChildScrollView(
+            // Center is a layout widget. It takes a single child and positions it
+            // in the middle of the parent.
             child: Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
           child: Column(
-            // Column is also a layout widget. It takes a list of children and
-            // arranges them vertically. By default, it sizes itself to fit its
-            // children horizontally, and tries to be as tall as its parent.
-            //
-            // Invoke "debug painting" (press "p" in the console, choose the
-            // "Toggle Debug Paint" action from the Flutter Inspector in Android
-            // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-            // to see the wireframe for each widget.
-            //
-            // Column has various properties to control how it sizes itself and
-            // how it positions its children. Here we use mainAxisAlignment to
-            // center the children vertically; the main axis here is the vertical
-            // axis because Columns are vertical (the cross axis would be
-            // horizontal).
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               // a list of widgets
@@ -271,16 +235,37 @@ class _MyHomePageState extends State<MyHomePage> {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       textAlign: TextAlign.center,
                       controller: txtWager,
-                      style: const TextStyle(
+                      enabled: !wagerButtonDisabled,
+                      // No bottom underline in TextField
+                      // Credit: https://stackoverflow.com/questions/49040679/flutter-how-to-make-a-textfield-with-hinttext-but-no-underline
+                      decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none),
+                      onSubmitted: (String value) {
+                        // for Android, Windows, other non-iOS users who can tap Done or Enter
+                        // iOS users MUST use the Wager button, they have no choice (poor dears)
+                        if (value.trim() == "") {
+                          showAlertDialog("What, no wager?");
+                          return;
+                        } else {
+                          closeNumpad();
+                          recordWager(value);
+                        }
+                      },
+                      style: TextStyle(
                           fontSize: 52.0,
                           fontFamily: 'GasPumpLCD',
-                          color: themeColor),
+                          color:
+                              (wagerButtonDisabled ? Colors.grey : themeColor)),
                     ),
                   ),
                   ElevatedButton(
                     onPressed: wagerButtonDisabled
                         ? () {
-                            // nop - change color?
+                            // nop when button tapped
                           }
                         : () {
                             // logic for Enter pressed including closing of numpad
@@ -309,76 +294,82 @@ class _MyHomePageState extends State<MyHomePage> {
                     border: Border.all(
                         color: Colors.black)), // ADDS TO HEIGHT, WIDTH
                 alignment: Alignment.center,
-                width: statusTableWidth,
                 height: 114, // WARNING: COMPILER FLAGS OVERRUNS OF THE PARENT
-                margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                margin: const EdgeInsets.only(
+                    top: 10.0, bottom: 10.0, left: 15.0, right: 15.0),
                 child: Column(children: [
                   Row(children: [
-                    Container(
-                        color: Colors.orange,
-                        alignment: Alignment.center,
-                        width: statusCellWidth,
-                        height: 40.0,
-                        child: Text(
-                          "Player",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                        )),
-                    Container(
-                        color: themeColor,
-                        alignment: Alignment.center,
-                        width: statusCellWidth,
-                        height: 40.0,
-                        child: Text(
-                          "Last Card",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                        )),
-                    Container(
-                        color: Colors.orange,
-                        alignment: Alignment.center,
-                        width: statusCellWidth,
-                        height: 40.0,
-                        child: Text(
-                          "House",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                        )),
+                    Expanded(
+                      child: Container(
+                          color: Colors.orange,
+                          alignment: Alignment.center,
+                          height: 40.0,
+                          child: Text(
+                            "Player",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          )),
+                    ),
+                    Expanded(
+                      child: Container(
+                          color: themeColor,
+                          alignment: Alignment.center,
+                          height: 40.0,
+                          child: Text(
+                            "Last Card",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          )),
+                    ),
+                    Expanded(
+                      child: Container(
+                          color: Colors.orange,
+                          alignment: Alignment.center,
+                          height: 40.0,
+                          child: Text(
+                            "House",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          )),
+                    ),
                   ]),
                   Row(children: [
-                    Container(
-                        alignment: Alignment.center,
-                        width: statusCellWidth,
-                        height: 70.0,
-                        padding: const EdgeInsets.only(top: 15.0),
-                        child: Text(playerCount.toString(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 60.0,
-                                fontFamily: 'GasPumpLCD',
-                                color: Colors.black))),
-                    Container(
-                        alignment: Alignment.center,
-                        width: statusCellWidth,
-                        height: 44.0,
-                        padding: const EdgeInsets.only(top: 0.0),
-                        child: Text(sbLastCard.toString(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 30.0,
-                                fontWeight: FontWeight.bold,
-                                color: themeColor))),
-                    Container(
-                        alignment: Alignment.center,
-                        width: statusCellWidth,
-                        height: 70.0,
-                        padding: const EdgeInsets.only(top: 15.0),
-                        child: Text(houseCount.toString(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 60.0,
-                                fontFamily: 'GasPumpLCD',
-                                color: Colors.black))),
+                    Expanded(
+                      child: Container(
+                          alignment: Alignment.center,
+                          height: 70.0,
+                          padding: const EdgeInsets.only(top: 15.0),
+                          child: Text(playerCount.toString(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  fontSize: 60.0,
+                                  fontFamily: 'GasPumpLCD',
+                                  color: Colors.black))),
+                    ),
+                    Expanded(
+                      child: Container(
+                          alignment: Alignment.center,
+                          height: 44.0,
+                          padding: const EdgeInsets.only(top: 0.0),
+                          child: Text(sbLastCard.toString(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  fontSize: 30.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: themeColor))),
+                    ),
+                    Expanded(
+                      child: Container(
+                          alignment: Alignment.center,
+                          height: 70.0,
+                          padding: const EdgeInsets.only(top: 15.0),
+                          child: Text(houseCount.toString(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  fontSize: 60.0,
+                                  fontFamily: 'GasPumpLCD',
+                                  color: Colors.black))),
+                    ),
                   ]),
                 ]),
               ),
@@ -394,7 +385,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ElevatedButton(
                       onPressed: hitStandButtonsDisabled
                           ? () {
-                              // nop - change color?
+                              // nop when button tapped
                             }
                           : () {
                               playerHits();
@@ -447,19 +438,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                       ),
-                      /*  MAY USE THIS LATER
-                          SizedBox(
-                            height: 5.0,
-                          ),
-                          ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  messageVisible = false;
-                                });
-                              },
-                              style: enabledMsgButtonStyle,
-                              child: const Text('OK')),
-                          */
                     ],
                   )),
             ],
@@ -765,21 +743,40 @@ class AboutPageRoute extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          margin: EdgeInsets.only(left: 30.0, right: 30.0),
+          margin:
+              EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0, bottom: 20.0),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(
-              'This app is the first app I used to learn how to '
-              'write for Flutter using Dart.  The Blackjack game '
-              'represented is a simplified version, so there\'s no splitting '
-              'of hands, no insurance bets, or any of the fancy stuff. '
-              'This also presumes an infinite "shoe" of multiple decks of cards '
-              'so forget about card counting.'
-              '\n\n'
-              'This project turned out to be a decent working model of a number of '
-              'different Flutter and Dart concepts including detection of '
-              'button press events, styling of controls, and (perhaps especially) '
-              'how Flutter manages layout formatting.\n\n',
-              style: TextStyle(fontSize: 18.0),
+            // Credit: https://flutteragency.com/singlechildscrollview-widget/
+            // This allows for a block of text as long as desired, with vertical scrolling
+            // that adjusts properly for any vertical screen size.
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: const [
+                    SizedBox(
+                      child: Text(
+                        'Author: Charles Tatum II'
+                        '\n\n'
+                        'This app is the first app I used to learn how to '
+                        'write for Flutter using Dart.  The Blackjack game '
+                        'represented is a simplified version, so there\'s no splitting '
+                        'of hands, no insurance bets, or any of the fancy stuff. '
+                        'This also presumes an infinite "shoe" of multiple decks of cards '
+                        'so forget about card counting.'
+                        '\n\n'
+                        'This project turned out to be a decent working model of a number of '
+                        'different Flutter and Dart concepts including detection of '
+                        'button press events, styling of controls, and (perhaps especially) '
+                        'how Flutter manages layout formatting.'
+                        '\n',
+                        style: TextStyle(fontSize: 18.0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             Container(
               alignment: Alignment.bottomCenter,

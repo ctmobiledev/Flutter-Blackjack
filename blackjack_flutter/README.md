@@ -1,16 +1,29 @@
 # blackjack_flutter
 
-A new Flutter project.
+******************************************************************************
 
-## Getting Started
+FLUTTER BLACKJACK
+A demo of basic Dart and Flutter concepts
 
-This project is a starting point for a Flutter application.
+Author: Charles Tatum II
+Original Creation Date: June 2022
 
-A few resources to get you started if this is your first Flutter project:
+******************************************************************************
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Description
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This app is the first app I used to learn how to write for Flutter using Dart.  
+The Blackjack game represented is a simplified version, so there's no splitting
+of hands, no insurance bets, or any of the fancy stuff. This also presumes an 
+infinite "shoe" of multiple decks of cards so forget about card counting.
+
+This project turned out to be a decent working model of a number of different 
+Flutter and Dart concepts including detection of button press events, styling 
+of controls, and (perhaps especially) how Flutter manages layout formatting.'
+
+Note that this project does not include much in the way of modularization,
+industry design patterns, architectural patterns, or any other "industry"
+markers. That was not the point of it. As this was a first project, my goal
+was to get the vision from my head to an executable as quickly as possible,
+while learning the idiosyncrasies and benefits of working with Flutter and the
+Dart language, both under the Visual Studio Code extension for Flutter.

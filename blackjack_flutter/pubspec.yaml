@@ -1,3 +1,13 @@
+# ******************************************************************************
+# 
+# FLUTTER BLACKJACK
+# A demo of basic Dart and Flutter concepts
+# 
+# Author: Charles Tatum II
+# Original Creation Date: June 2022
+# 
+# ******************************************************************************
+
 name: blackjack_flutter
 description: A demo of Flutter using a simplified Blackjack game.
 
