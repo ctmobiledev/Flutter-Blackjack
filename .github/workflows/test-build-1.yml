@@ -30,8 +30,11 @@ jobs:
           channel: 'stable'
       - run: flutter --version
       - run: flutter pub get
+        working-directory: './blackjack_flutter'
       - run: flutter test
+        working-directory: './blackjack_flutter'
       - run: flutter build apk
+        working-directory: './blackjack_flutter'
 #      - uses: ncipollo/release-action@v2
 #        with:
 #         artifacts: "build/app/outputs/flutter-apk/*.apk"
