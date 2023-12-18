@@ -1,0 +1,40 @@
+# This is a basic workflow to help you get started with Actions
+name: Dry Run 1
+
+# Controls when the workflow will run
+# Controls what will trigger the workflow.
+# Change it to your needs.
+on:
+    # A new push to the "main" branch. 
+    push:
+       branches: [ "main" ]
+     # A new pull request to the "main" branch.
+    pull_request:
+       branches: [ "main" ]
+   
+  # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  releases:
+    name: debug apk
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    env:
+      JAVA_VERSION: "11.0"
+      FLUTTER_VERSION: "3.7.0"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: $
+      - uses: subosito/flutter-action@v1
+        with:
+          flutter-version: $
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build apk     # --release
+#      - uses: ncipollo/release-action@v2
+#        with:
+#         artifacts: "build/app/outputs/flutter-apk/*.apk"
+#         token: $
